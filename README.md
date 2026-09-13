@@ -12,7 +12,9 @@ get working OpenGL+OpenCL.
 Installation
 --------
 1. Download the latest release from the Release section, already packaged as a .flatpak.
+```
 flatpak install <x>.flatpak
+```
 
 If you want to build yourself, see below.
 
