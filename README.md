@@ -9,33 +9,17 @@ Extension it builds sits on top of the Mesa in Freedesktop SDK
 org.freedesktop.Platform.GL.default; so you will need to use both to
 get working OpenGL+OpenCL.
 
-Building
+Installation
 --------
+1. Download the latest release from the Release section, already packaged as a .flatpak.
+flatpak install <x>.flatpak
 
-23.08 is based on BuildStream2.
+If you want to build yourself, see below.
 
-Install Buildstream2 and plugins:
+Usage
+-----
 
-1. Install BuildStream2:
-```
-sudo dnf install bubblewrap fuse3 git lzip patch python3 python3-pip python3-devel
-sudo pip3 install dulwich==0.24.10 click requests
-pip3 install buildstream buildstream-external buildstream-plugins bst-plugins-experimental
-```
-2. Build this repo, and export to a Flatpak repo:
-```
-bst build rocm-flatpak.bst
-bst artifact checkout --directory ~/rocm-repo rocm-flatpak.bst
-flatpak remote-add --user rocm-repo ~/rocm-repo --no-gpg-verify
-flatpak install --user org.freedesktop.Platform.GL.ROCm
-```
-
-2. 1. (optional) Export the build product to a single-file bundle
-```
-flatpak build-bundle --runtime ~/rocm-repo rocm.flatpak org.freedesktop.Platform.GL.ROCm 23.08
-```
-
-3. Using ROCm for OpenCL:
+1. Using ROCm for OpenCL:
 Currently the Freedesktop SDK doesn't know how to autoload the AMD ROCm
 extension. Until it does you'll need to update the FLATPAK_GL_DRIVERS
 environment variable to run OpenCL apps. Example:
@@ -72,6 +56,34 @@ Number of platforms                               2
   Platform Extensions function suffix             AMD
   Platform Host timer resolution                  1ns
 ```
+
+
+Building
+--------
+
+23.08 is based on BuildStream2.
+
+Install Buildstream2 and plugins:
+
+1. Install BuildStream2:
+```
+sudo dnf install bubblewrap fuse3 git lzip patch python3 python3-pip python3-devel
+sudo pip3 install dulwich==0.24.10 click requests
+pip3 install buildstream buildstream-external buildstream-plugins bst-plugins-experimental
+```
+2. Build this repo, and export to a Flatpak repo:
+```
+bst build rocm-flatpak.bst
+bst artifact checkout --directory ~/rocm-repo rocm-flatpak.bst
+flatpak remote-add --user rocm-repo ~/rocm-repo --no-gpg-verify
+flatpak install --user org.freedesktop.Platform.GL.ROCm
+```
+
+2. 1. (optional) Export the build product to a single-file bundle
+```
+flatpak build-bundle --runtime ~/rocm-repo rocm.flatpak org.freedesktop.Platform.GL.ROCm 23.08
+```
+
 
 Issues, Workarounds and Caveats
 --------------------------------
