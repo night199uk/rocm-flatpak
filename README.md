@@ -81,8 +81,10 @@ is required for ROCm to function. You'll need to pass --device=all to
 any apps to allow ROCm to see /dev/kfd.  You can use Flatseal to add
 this to apps and make it permanent.
 https://github.com/flatpak/flatpak/issues/5383
+UPDATE: This is no longer required as Flatpak 1.18 now allows access
+to /dev/kfd just by enabling "GPU" access.
 
-2. Freedesktop Bug
+3. Freedesktop Bug
 There is also a bug in the Freedesktop SDK provided Mesa OpenCL with
 (?) some AMD cards (?) which stops ROCm OpenCL device being used even
 when hard coded in the app.  This happens with e.g. the Radeon 5500M in
