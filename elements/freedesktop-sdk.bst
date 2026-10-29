@@ -1,7 +1,12 @@
 kind: junction
 
+config:
+  options:
+    bootstrap_build_arch: '%{arch}'
+    target_arch: '%{arch}'
+
 sources:
-- kind: git_tag
-  url: gitlab:freedesktop-sdk/freedesktop-sdk.git
-  track: release/23.08
-  ref: freedesktop-sdk-23.08.30-168-ga9bac8f28ef76663d7bb5fc87066689f55024e5d
+- kind: git
+  url: 'gitlab:freedesktop-sdk/freedesktop-sdk.git'
+  track: 'freedesktop-sdk-26.08.4'
+  ref: 114ae909ec9881958bd507c8b4414aa33f758d2b

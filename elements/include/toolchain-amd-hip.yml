@@ -1,0 +1,20 @@
+# Shared amd-hip compiler toolchain for ROCm subprojects.
+#
+# This extends the amd-llvm fragment with HIP-aware flags, mirroring TheRock's
+# "amd-hip" mnemonic: --hip-path points at the hip-clr element and
+# --hip-device-lib-path points at amd-llvm's AMDGCN bitcode.
+#
+# The element including this fragment must build-depend on both
+# components/amd-llvm.bst and components/hip-clr.bst.
+
+(@):
+- elements/include/toolchain-amd-llvm.yml
+
+variables:
+  rocm-toolchain-cmake-args: >-
+    -DCMAKE_TOOLCHAIN_FILE=%{build-root}/files/toolchain/amd-hip.cmake
+    -DROCM_LLVM_PREFIX=%{rocm-llvm-prefix}
+    -DROCM_HIP_PREFIX=%{rocm-hip-prefix}
+    -DROCM_ROCM_PREFIX=%{rocm-prefix}
+    -DROCM_GPU_TARGETS=%{rocm-gpu-targets}
+    -DCMAKE_TRY_COMPILE_PLATFORM_VARIABLES="ROCM_LLVM_PREFIX;ROCM_ROCM_PREFIX;ROCM_HIP_PREFIX;ROCM_GPU_TARGETS"

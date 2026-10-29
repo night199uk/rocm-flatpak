@@ -1,0 +1,13 @@
+diff --git a/rocm-libraries/projects/rocfft/cmake/sqlite.cmake b/rocm-libraries/projects/rocfft/cmake/sqlite.cmake
+index 6bbf4c3441..b674fbe151 100644
+--- a/rocm-libraries/projects/rocfft/cmake/sqlite.cmake
++++ b/rocm-libraries/projects/rocfft/cmake/sqlite.cmake
+@@ -26,7 +26,7 @@ option( SQLITE_USE_SYSTEM_PACKAGE "Use SQLite3 from find_package" OFF )
+ 
+ if( SQLITE_USE_SYSTEM_PACKAGE )
+   # Require a safe baseline (fixes security vulnerability).
+-  find_package(SQLite3 3.51.3 REQUIRED)
++  find_package(SQLite3 3.50.4 REQUIRED)
+   list(APPEND static_depends PACKAGE SQLite3)
+   set(ROCFFT_SQLITE_LIB SQLite::SQLite3)
+ else()

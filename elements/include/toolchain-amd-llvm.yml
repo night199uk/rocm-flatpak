@@ -1,0 +1,18 @@
+# Shared amd-llvm compiler toolchain for ROCm subprojects.
+#
+# This mirrors TheRock's _therock_cmake_subproject_setup_toolchain() for the
+# "amd-llvm" mnemonic: use the amd-llvm element's clang/clang++/lld, pin the
+# clang resource directory, apply the project-wide warning suppressions and
+# pass the GPU targets through to CMake.
+#
+# The toolchain file is staged by rocm-therock.bst at
+# %{build-root}/files/toolchain and selected from project.conf via
+# %{rocm-toolchain-cmake-args}.
+
+variables:
+  rocm-toolchain-cmake-args: >-
+    -DCMAKE_TOOLCHAIN_FILE=%{build-root}/files/toolchain/amd-llvm.cmake
+    -DROCM_LLVM_PREFIX=%{rocm-llvm-prefix}
+    -DROCM_ROCM_PREFIX=%{rocm-prefix}
+    -DROCM_GPU_TARGETS=%{rocm-gpu-targets}
+    -DCMAKE_TRY_COMPILE_PLATFORM_VARIABLES="ROCM_LLVM_PREFIX;ROCM_ROCM_PREFIX;ROCM_GPU_TARGETS"

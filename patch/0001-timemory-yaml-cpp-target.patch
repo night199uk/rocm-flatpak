@@ -1,0 +1,16 @@
+diff --git a/rocm-systems/projects/rocprofiler-systems/external/timemory/cmake/Modules/Packages.cmake b/rocm-systems/projects/rocprofiler-systems/external/timemory/cmake/Modules/Packages.cmake
+--- a/rocm-systems/projects/rocprofiler-systems/external/timemory/cmake/Modules/Packages.cmake
++++ b/rocm-systems/projects/rocprofiler-systems/external/timemory/cmake/Modules/Packages.cmake
+@@ -604,7 +604,11 @@
+                                         YAML_CPP_STATIC_DEFINE=1)
+     if(NOT TIMEMORY_BUILD_YAML)
+         find_package(yaml-cpp REQUIRED)
+-        target_link_libraries(timemory-yaml INTERFACE yaml-cpp)
++        if(TARGET yaml-cpp::yaml-cpp)
++            target_link_libraries(timemory-yaml INTERFACE yaml-cpp::yaml-cpp)
++        else()
++            target_link_libraries(timemory-yaml INTERFACE yaml-cpp)
++        endif()
+     else()
+         target_include_directories(
+             timemory-yaml SYSTEM

@@ -1,0 +1,11 @@
+diff --git a/rocm-libraries/projects/rocblas/library/CMakeLists.txt b/rocm-libraries/projects/rocblas/library/CMakeLists.txt
+--- a/rocm-libraries/projects/rocblas/library/CMakeLists.txt
++++ b/rocm-libraries/projects/rocblas/library/CMakeLists.txt
+@@ -81,6 +81,6 @@
+   if (WIN32)
+     target_link_libraries( ${lib_target_} PRIVATE hip::device )
+   else()
+-    target_link_libraries( ${lib_target_} PRIVATE hip::device -lstdc++fs --rtlib=compiler-rt --unwindlib=libgcc)
++    target_link_libraries( ${lib_target_} PRIVATE hip::device --rtlib=compiler-rt --unwindlib=libgcc)
+ 
+     if(BUILD_SHARED_LIBS)

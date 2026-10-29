@@ -1,0 +1,12 @@
+diff --git a/rocm-libraries/projects/rocblas/cmake/virtualenv.cmake b/rocm-libraries/projects/rocblas/cmake/virtualenv.cmake
+--- a/rocm-libraries/projects/rocblas/cmake/virtualenv.cmake
++++ b/rocm-libraries/projects/rocblas/cmake/virtualenv.cmake
+@@ -66,7 +66,7 @@ function(virtualenv_install)
+     message("${VIRTUALENV_BIN_DIR}/${VIRTUALENV_PYTHON_EXENAME} -m pip install ${ARGN}")
+     execute_process(
+       RESULT_VARIABLE rc
+-      COMMAND ${VIRTUALENV_BIN_DIR}/${VIRTUALENV_PYTHON_EXENAME} -m pip install ${ARGN}
++      COMMAND ${VIRTUALENV_BIN_DIR}/${VIRTUALENV_PYTHON_EXENAME} -m pip install --no-index --no-build-isolation --no-deps ${ARGN}
+     )
+     if(rc)
+         message(FATAL_ERROR ${rc})

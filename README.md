@@ -3,11 +3,19 @@
 rocm-flatpak
 ============
 
-This repo is an initial cut of building the AMD ROCm stack for
-Flatpak 23.08.  It currently builds OpenCL. The ROCm Runtime
-Extension it builds sits on top of the Mesa in Freedesktop SDK
-org.freedesktop.Platform.GL.default; so you will need to use both to
-get working OpenGL+OpenCL.
+The AMD ROCm stack built from TheRock 7.14 sources for Flatpak 26.08.  
+This builds two artifacts: ROCm Runtime and ROCm SDK.
+
+The ROCm Runtime provides all of the runtime components most users
+need: OpenCL, with AMD mesa and AMD libdrm. As of this version, AMD
+Mesa is not built to cover all uses cases and sits atop of the full
+Mesa in the Freedesktop SDK. Thus, you need to use ROCm & default GL
+extensions together. This may change in future.
+
+The ROCm SDK provides amd-llvm, hipcc, and all of the tools AMD ship
+for building ROCm accelerated code. This is largely untested as yet
+as I don't have a use case for this. However it successfully builds
+the AMD runtimes we ship here.
 
 Installation
 --------
@@ -16,8 +24,6 @@ Installation
 flatpak install <x>.flatpak
 ```
 
-If you want to build yourself, see below.
-
 Usage
 -----
 
@@ -25,6 +31,7 @@ Usage
 Currently the Freedesktop SDK doesn't know how to autoload the AMD ROCm
 extension. Until it does you'll need to update the FLATPAK_GL_DRIVERS
 environment variable to run OpenCL apps. Example:
+
 ```
 ❯ export FLATPAK_GL_DRIVERS=ROCm:default
 ```
@@ -37,6 +44,14 @@ echo FLATPAK_GL_DRIVERS=ROCm:default | tee ~/.config/environment.d/60-flatpak_gl
 ```
 After a logout and login, or reboot you should see FLATPAK_GL_DRIVERS
 set in the environment.
+
+You also need to set OCL_ICD_VENDORS for the Flatpak application that
+wants to use due to a bug (this should be fixed soon). The critical part
+is the trailing slash on the end of vendors/; so please don't remove it.
+
+```
+❯ flatpak override --user --env=OCL_ICD_VENDORS=/usr/lib/x86_64-linux-gnu/GL/OpenCL/vendors/ <component ID>
+```
 
 ClInfo:
 ```
@@ -60,63 +75,15 @@ Number of platforms                               2
 ```
 
 
-Building
---------
-
-23.08 is based on BuildStream2.
-
-Install Buildstream2 and plugins:
-
-1. Install BuildStream2:
-```
-sudo dnf install bubblewrap fuse3 git lzip patch python3 python3-pip python3-devel
-sudo pip3 install dulwich==0.24.10 click requests
-pip3 install buildstream buildstream-external buildstream-plugins bst-plugins-experimental
-```
-2. Build this repo, and export to a Flatpak repo:
-```
-bst build rocm-flatpak.bst
-bst artifact checkout --directory ~/rocm-repo rocm-flatpak.bst
-flatpak remote-add --user rocm-repo ~/rocm-repo --no-gpg-verify
-flatpak install --user org.freedesktop.Platform.GL.ROCm
-```
-
-2. 1. (optional) Export the build product to a single-file bundle
-```
-flatpak build-bundle --runtime ~/rocm-repo rocm.flatpak org.freedesktop.Platform.GL.ROCm 23.08
-```
-
-
 Issues, Workarounds and Caveats
 --------------------------------
 1. /dev/kfd
-Currently the --device=dri flag doesn't enable access to /dev/kfd, which
-is required for ROCm to function. You'll need to pass --device=all to
-any apps to allow ROCm to see /dev/kfd.  You can use Flatseal to add
-this to apps and make it permanent.
-https://github.com/flatpak/flatpak/issues/5383
-UPDATE: This is no longer required as Flatpak 1.18 now allows access
-to /dev/kfd just by enabling "GPU" access.
 
-3. Freedesktop Bug
-There is also a bug in the Freedesktop SDK provided Mesa OpenCL with
-(?) some AMD cards (?) which stops ROCm OpenCL device being used even
-when hard coded in the app.  This happens with e.g. the Radeon 5500M in
-the MacbookPro16,4.
-https://gitlab.freedesktop.org/mesa/mesa/-/issues/4189
-In this case, you can force apps to only "see" the ROCm OpenCL
-implementation by setting the following environment variable into the
-app using e.g. Flatseal:
+If you use Flatpak < 1.18
+: the --device=dri flag doesn't enable access to /dev/kfd, which is
+required for ROCm to function.  You'll need to pass --device=all to any
+apps to allow ROCm to see /dev/kfd.  You can use Flatseal to add this
+to apps and make it permanent.  
 
-```
-OCL_ICD_VENDORS=/usr/lib/x86_64-linux-gnu/GL/ROCm/OpenCL/vendors
-```
-
-3. Old Cards
-Older cards (RX580, etc) will require additional variables. You can
-set these into the app with Flatseal, or add them to /etc/environment
-or similar.
-```
-ROC_ENABLE_PRE_VEGA=1
-```
-
+Flatpak > 1.18: enabling GPU permissions for a Flatpak app will pass
+through /dev/kfd.
