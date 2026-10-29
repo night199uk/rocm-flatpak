@@ -1,18 +1,14 @@
-# Ignore buildstream local state directories
-.bst
-
-# Rust hello world test
-target/
-
-# Ignore caches
-__pycache__
-
-# Ignore virtual envs
+# BuildStream local state and caches
+.bst/
+__pycache__/
 .venv/
 
-# Ignore local testing
+# Local Flatpak build outputs
 repo/
 runtimes/
 .flatpak-builder/
 app/
 runtime/
+
+# Local BuildStream build logs
+bst-build*.log

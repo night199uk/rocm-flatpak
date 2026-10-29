@@ -1,0 +1,12 @@
+# Minimal cblas package for projects that expect TheRock's host-blas wrapper.
+if(NOT TARGET cblas)
+  find_library(CBLAS_LIBRARY NAMES openblas cblas)
+  find_path(CBLAS_INCLUDE_DIR NAMES cblas.h HINTS /opt/OpenBLAS/include)
+  if(NOT CBLAS_LIBRARY OR NOT CBLAS_INCLUDE_DIR)
+    message(FATAL_ERROR "cblas: could not find libopenblas and cblas.h")
+  endif()
+  add_library(cblas INTERFACE)
+  target_link_libraries(cblas INTERFACE "${CBLAS_LIBRARY}")
+  target_include_directories(cblas INTERFACE "${CBLAS_INCLUDE_DIR}")
+  set(CBLAS_LIBRARIES cblas)
+endif()

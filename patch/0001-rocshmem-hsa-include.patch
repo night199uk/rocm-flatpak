@@ -1,0 +1,13 @@
+--- a/rocm-systems/projects/rocshmem/cmake/DeviceBitcode.cmake
++++ b/rocm-systems/projects/rocshmem/cmake/DeviceBitcode.cmake
+@@ -118,6 +118,10 @@
+     -I${CMAKE_BINARY_DIR}/include/rocshmem
+ )
+ 
++if(HSA_INCLUDE_DIR)
++  list(APPEND BITCODE_COMPILE_FLAGS_BASE -I${HSA_INCLUDE_DIR})
++endif()
++
+ if(${ROCM_MAJOR_VERSION} LESS 7)
+   # ROCm 6.x requires us to explicitly enable warp sync builtins
+   list(APPEND BITCODE_COMPILE_FLAGS_BASE -DHIP_ENABLE_WARP_SYNC_BUILTINS=1)

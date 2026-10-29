@@ -1,187 +1,83 @@
-name: Build Flatpak CI
+name: Build ROCm Flatpak
 
 on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
-
   workflow_dispatch:
+    inputs:
+      version:
+        description: "Release tag, for example v0.1.0"
+        required: true
+        type: string
+
+permissions:
+  contents: write
 
 jobs:
-  build_deps_base:
-    runs-on: ubuntu-latest
-    container:
-      image: fedora:latest
-      options: "--privileged --cap-add SYS_ADMIN --device /dev/fuse"
-    steps:
-      - name: "Code Checkout"
-        uses: actions/checkout@v5
-
-      - name: "Install node"
-        run: |
-          sudo dnf install -y node
-
-      - name: "Read YAML"
-        uses: pietrobolcato/action-read-yaml@1.1.0
-        id: read_sdk
-        with:
-          config: ${{ github.workspace }}/elements/freedesktop-sdk.bst
-
-      - name: "Check Buildstream Cache"
-        uses: actions/cache/restore@v5
-        id: cache-lookup
-        with:
-          path: ~/.cache/buildstream
-          key: ${{ steps.read_sdk.outputs['sources.0.ref'] }}-base
-          lookup-only: true
-
-      - name: "Install BuildStream2"
-        if: steps.cache-lookup.outputs.cache-hit != 'true'
-        run: |
-          sudo dnf group install -y c-development
-          sudo dnf install -y flatpak bubblewrap fuse3 git lzip patch python3-devel python3-pip fuse3 fuse3-devel node
-          pip install buildstream buildstream-plugins buildstream-external bst-plugins-experimental dulwich==0.24.10
-
-# Try to restore the most recent build stream cache
-      - name: "Build dependencies to reduce job size (base)"
-        if: steps.cache-lookup.outputs.cache-hit != 'true'
-        run: bst build freedesktop-sdk.bst:bootstrap-import.bst freedesktop-sdk.bst:components/ostree-minimal.bst freedesktop-sdk.bst:components/appstream-minimal.bst
-
-      - name: "Remove sources from cache"
-        run: rm -rf ~/.cache/buildstream/sources
-
-      - name: "Save Buildstream Cache"
-        if: steps.cache-lookup.outputs.cache-hit != 'true' && success()
-        uses: actions/cache/save@v5
-        with:
-          path: ~/.cache/buildstream
-          key: ${{ steps.cache-lookup.outputs.cache-primary-key }}
-
-  build_deps_sdk:
-    runs-on: ubuntu-latest
-    container:
-      image: fedora:latest
-      options: "--privileged --cap-add SYS_ADMIN --device /dev/fuse"
-    needs: build_deps_base
-    steps:
-      - name: "Code Checkout"
-        uses: actions/checkout@v5
-
-      - name: "Install node"
-        run: |
-          sudo dnf install -y node
-
-      - name: "Read YAML"
-        uses: pietrobolcato/action-read-yaml@1.1.0
-        id: read_sdk
-        with:
-          config: ${{ github.workspace }}/elements/freedesktop-sdk.bst
-
-      - name: "Check Buildstream Cache"
-        uses: actions/cache/restore@v5
-        id: cache-lookup
-        with:
-          path: ~/.cache/buildstream
-          key: ${{ steps.read_sdk.outputs['sources.0.ref'] }}-sdk
-          lookup-only: true
-
-      - name: "Restore Buildstream Cache"
-        uses: actions/cache/restore@v5
-        id: cache-restore
-        if: steps.cache-lookup.outputs.cache-hit != 'true'
-        with:
-          path: ~/.cache/buildstream
-          key: ${{ steps.read_sdk.outputs['sources.0.ref'] }}-base
-          fail-on-cache-miss: true
-
-      - name: "Install BuildStream2"
-        if: steps.cache-lookup.outputs.cache-hit != 'true'
-        run: |
-          sudo dnf group install -y c-development
-          sudo dnf install -y flatpak bubblewrap fuse3 git lzip patch python3-devel python3-pip fuse3 fuse3-devel node
-          pip install buildstream buildstream-plugins buildstream-external bst-plugins-experimental dulwich==0.24.10
-
-# Try to restore the most recent build stream cache
-      - name: "Build dependencies to reduce job size (SDK)"
-        if: steps.cache-lookup.outputs.cache-hit != 'true'
-        run: bst build freedesktop-sdk.bst:sdk.bst
-
-      - name: "Remove sources from cache"
-        run: rm -rf ~/.cache/buildstream/sources
-
-      - name: "Save Buildstream Cache (SDK)"
-        if: steps.cache-lookup.outputs.cache-hit != 'true' && success()
-        uses: actions/cache/save@v5
-        with:
-          path: ~/.cache/buildstream
-          key: ${{ steps.cache-lookup.outputs.cache-primary-key }}
-
   build:
-    runs-on: ubuntu-latest
-    container:
-      image: fedora:latest
-      options: "--privileged --cap-add SYS_ADMIN --device /dev/fuse"
-    needs: build_deps_sdk
+    runs-on: self-hosted
+    timeout-minutes: 2880
     steps:
-      - name: "Code Checkout"
-        uses: actions/checkout@v5
+      - uses: actions/checkout@v4
 
-      - name: "Install node"
+      - name: Check build environment
         run: |
-          sudo dnf install -y node
+          export PATH="$HOME/.local/bin:$PATH"
+          command -v lzip >/dev/null || sudo dnf install -y lzip
+          bst --version
+          git lfs version
+          dvc --version
+          flatpak --version
 
-      - name: "Read YAML"
-        uses: pietrobolcato/action-read-yaml@1.1.0
-        id: read_sdk
-        with:
-          config: ${{ github.workspace }}/elements/freedesktop-sdk.bst
-
-      - name: "Restore Buildstream Cache"
-        uses: actions/cache/restore@v5
-        id: restore-cache
-        with:
-          path: ~/.cache/buildstream
-          key: ${{ runner.os }}-bst-${{ hashFiles('elements/*.bst') }}
-          restore-keys: |
-            ${{ steps.read_sdk.outputs['sources.0.ref'] }}-sdk
-          fail-on-cache-miss: true
-
-      - name: "Install BuildStream2"
+      - name: Build runtime and SDK
         run: |
-          sudo dnf group install -y c-development
-          sudo dnf install -y flatpak bubblewrap fuse3 git lzip patch python3-devel python3-pip fuse3 fuse3-devel
-          pip install buildstream buildstream-plugins buildstream-external bst-plugins-experimental dulwich==0.24.10
+          export PATH="$HOME/.local/bin:$PATH"
+          bst --no-colors --no-interactive \
+            --builders 1 --max-jobs 6 \
+            build rocm-runtime-flatpak.bst rocm-sdk-flatpak.bst
 
-      - name: "Build .bst file"
-        run: bst build rocm-flatpak.bst
+      - name: Build Flatpak bundles
+        run: |
+          export PATH="$HOME/.local/bin:$PATH"
+          rm -rf dist runtime-repo sdk-repo
+          mkdir -p dist
 
-      - name: "Remove sources from cache"
-        run: rm -rf ~/.cache/buildstream/sources
+          bst --no-colors --no-interactive artifact checkout \
+            --force --directory runtime-repo rocm-runtime-flatpak.bst
+          flatpak build-bundle --runtime --arch=x86_64 \
+            runtime-repo dist/rocm-runtime.flatpak \
+            org.freedesktop.Platform.GL.ROCm 26.08
 
-      - name: "Save Buildstream Cache (SDK)"
-        if: steps.restore-cache.outputs.cache-primary-key != steps.restore-cache.outputs.cache-matched-key && success()
-        uses: actions/cache/save@v5
-        with:
-          path: ~/.cache/buildstream
-          key: ${{ steps.restore-cache.outputs.cache-primary-key }}
+          bst --no-colors --no-interactive artifact checkout \
+            --force --directory sdk-repo rocm-sdk-flatpak.bst
+          flatpak build-bundle --runtime --arch=x86_64 \
+            sdk-repo dist/rocm-sdk.flatpak \
+            org.freedesktop.Platform.amd.ROCm 26.08
 
-      - name: "Bst Artifact"
-        run: bst artifact checkout --directory ./rocm-repo rocm-flatpak.bst
+          # GitHub release assets have a 2 GiB per-file limit.
+          split -b 1900M -d -a 2 dist/rocm-sdk.flatpak dist/rocm-sdk.flatpak.part-
+          rm dist/rocm-sdk.flatpak
+          sha256sum dist/* > dist/SHA256SUMS
 
-      - name: "Add Flatpak Remote"
-        run: flatpak remote-add --user rocm-repo ./rocm-repo --no-gpg-verify
+      - name: Create draft release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ inputs.version }}
+          TARGET: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          case "$VERSION" in
+            v*) ;;
+            *) echo "version must start with v" >&2; exit 1 ;;
+          esac
 
-      - name: "Install Flatpak"
-        run: flatpak install -y --user org.freedesktop.Platform.GL.ROCm
-
-      - name: "Build Flatpak"
-        run: flatpak build-bundle --runtime ./rocm-repo rocm.flatpak org.freedesktop.Platform.GL.ROCm 23.08
-
-      - name: "Release to Github"
-        uses: ncipollo/release-action@v1
-        with:
-          artifacts: "rocm.flatpak"
-#          tag: "latest"
-          commit: ${{ github.sha }}
-          allowUpdates: true
+          if gh release view "$VERSION" >/dev/null 2>&1; then
+            is_draft=$(gh release view "$VERSION" --json isDraft --jq .isDraft)
+            if [ "$is_draft" != "true" ]; then
+              echo "release $VERSION already exists and is not a draft" >&2
+              exit 1
+            fi
+            gh release upload "$VERSION" dist/* --clobber
+            gh release edit "$VERSION" --draft --title "$VERSION"
+          else
+            gh release create "$VERSION" dist/* \
+              --draft --title "$VERSION" --generate-notes --target "$TARGET"
+          fi

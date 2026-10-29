@@ -1,0 +1,11 @@
+--- a/rocm-systems/projects/rocprofiler-systems/external/papi/src/libpfm4/lib/pfmlib_common.c
++++ b/rocm-systems/projects/rocprofiler-systems/external/papi/src/libpfm4/lib/pfmlib_common.c
+@@ -1888,7 +1888,7 @@
+ 	/*
+ 	 * support only one event at a time.
+ 	 */
+-	p = strpbrk(event, PFMLIB_EVENT_DELIM);
++	p = (char *)strpbrk(event, PFMLIB_EVENT_DELIM);
+ 	if (p)
+ 		return PFM_ERR_INVAL;
+ 	/*

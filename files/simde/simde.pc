@@ -1,0 +1,7 @@
+prefix=${pcfiledir}/../..
+includedir=${prefix}/include
+
+Name: SIMDe
+Description: Portable SIMD wrapper library
+Version: 0.8.2
+Cflags: -I${includedir}

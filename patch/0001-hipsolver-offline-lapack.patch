@@ -1,0 +1,16 @@
+diff --git a/rocm-libraries/projects/hipsolver/CMakeLists.txt b/rocm-libraries/projects/hipsolver/CMakeLists.txt
+--- a/rocm-libraries/projects/hipsolver/CMakeLists.txt
++++ b/rocm-libraries/projects/hipsolver/CMakeLists.txt
+@@ -255,6 +255,8 @@
+         find_package(Threads REQUIRED)
+-        if(HIPSOLVER_FIND_PACKAGE_LAPACK_CONFIG)
+-            find_package(LAPACK 3.7 REQUIRED CONFIG)
+-        else()
+-            find_package(LAPACK 3.7 REQUIRED)
++        if(NOT LAPACK_LIBRARIES)
++            if(HIPSOLVER_FIND_PACKAGE_LAPACK_CONFIG)
++                find_package(LAPACK 3.7 REQUIRED CONFIG)
++            else()
++                find_package(LAPACK 3.7 REQUIRED)
++            endif()
+         endif()

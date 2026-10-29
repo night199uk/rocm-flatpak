@@ -1,0 +1,25 @@
+diff --git a/rocm-systems/projects/rocprofiler-systems/external/dyninst/common/h/registers/MachRegister.h b/rocm-systems/projects/rocprofiler-systems/external/dyninst/common/h/registers/MachRegister.h
+--- a/rocm-systems/projects/rocprofiler-systems/external/dyninst/common/h/registers/MachRegister.h
++++ b/rocm-systems/projects/rocprofiler-systems/external/dyninst/common/h/registers/MachRegister.h
+@@ -34,6 +34,8 @@
+ #include "Architecture.h"
+ #include "util.h"
+ 
++#include <cstddef>
++#include <functional>
+ #include <string>
+ 
+ namespace Dyninst {
+@@ -90,4 +92,12 @@
+   };
+ }
+ 
++namespace std {
++template <> struct hash<Dyninst::MachRegister> {
++  std::size_t operator()(const Dyninst::MachRegister& reg) const noexcept {
++    return std::hash<int>{}(reg.val());
++  }
++};
++}
++
+ #endif
