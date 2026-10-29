@@ -52,12 +52,11 @@ jobs:
             sdk-repo dist/rocm-sdk.flatpak \
             org.freedesktop.Platform.amd.ROCm 26.08
 
-          # GitHub release assets have a 2 GiB per-file limit.
-          split -b 1900M -d -a 2 dist/rocm-sdk.flatpak dist/rocm-sdk.flatpak.part-
-          rm dist/rocm-sdk.flatpak
+          # Keep both runtimes as single .flatpak assets. The SDK is currently
+          # below GitHub's 2 GiB per-file limit, so it must not be split.
           sha256sum dist/* > dist/SHA256SUMS
 
-      - name: Create draft release
+      - name: Create release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ inputs.version }}
@@ -76,8 +75,8 @@ jobs:
               exit 1
             fi
             gh release upload "$VERSION" dist/* --clobber
-            gh release edit "$VERSION" --draft --title "$VERSION"
+            gh release edit "$VERSION" --title "$VERSION"
           else
             gh release create "$VERSION" dist/* \
-              --draft --title "$VERSION" --generate-notes --target "$TARGET"
+              --title "$VERSION" --generate-notes --target "$TARGET"
           fi
