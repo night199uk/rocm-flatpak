@@ -7,7 +7,7 @@ sources:
   url: rocm:TheRock
   checkout-submodules: false
   track: "%{rocmtag}"
-  ref: therock-7.14.1-0-gf51dc6c91e0d3214f22853fd5cb3f96dbc7d2c4b
+  ref: therock-10.0-0-g16adc4d875fd4f65ea23c7c84e1c66706fde3047
 
 - kind: git_module
   path: base/half
@@ -23,17 +23,17 @@ sources:
   path: compiler/amd-llvm
   url: github:ROCm/llvm-project.git
   full-clone: false
-  ref: f30ae3e6b680ad23dcf522e668c6d4c5c90838d0
+  ref: 8f497e0992fb7513f7f78a6f6b6f1056c375e961
 
 - kind: git_module
   path: compiler/hipify
   url: github:ROCm/HIPIFY.git
-  ref: 6acec7751d2b2bfe162dba9efdcf7c16efb27bd8
+  ref: 1c0fdf11502f06c4b4e978e35a1135240ea38e6f
 
 - kind: git_module
   path: compiler/spirv-llvm-translator
   url: github:ROCm/SPIRV-LLVM-Translator.git
-  ref: fb08e83ae872775acfeaee53fda3ccf99a04ba53
+  ref: ddeda6468d45cf1e888a0e81e50bc170756a335b
 
 - kind: git_tag
   directory: compiler/spirv-llvm-translator
@@ -44,24 +44,24 @@ sources:
 - kind: git_module
   path: debug-tools/rocgdb/source
   url: github:ROCm/rocgdb.git
-  ref: 36d878807f07f08e94f87b7d701de53ae2c4f207
+  ref: f37d75b6ce6163d0173cd38233b8011ee4fec50c
 
 - kind: git_module
   path: math-libs/libhipcxx
   url: github:ROCm/libhipcxx.git
-  ref: fa4ccc6beb77bfaa59a6fbeeebc94a4f18678945
+  ref: 8e336919711e1eb7fece0678a3d9e92bccfe6673
 
 - kind: git_module
   path: rocm-libraries
   url: github:ROCm/rocm-libraries
   full-clone: false
-  ref: cd9574023093742434e8c992d13b89ab9a6c1cf8
+  ref: 8d1ae90eff7d022f26019ec55b2ec6a7674b3112
 
 - kind: git_module
   path: rocm-systems
   url: github:ROCm/rocm-systems.git
   full-clone: false
-  ref: ca887ee80abfb82671fe1d6d8da708a713438e05
+  ref: 6b0e43f341195e203754e08f850e437ff2fc09f9
 
 - kind: git_module
   directory: rocm-systems
@@ -187,7 +187,7 @@ sources:
   path: projects/rocprofiler-systems/external/dyninst
   url: github:ROCm/dyninst.git
   full-clone: false
-  ref: 8d6f2bf3043f4307dc59d2b3e66514aac9a44160
+  ref: 81cd27fc9ae4984df307bc41d5cb8c1ce9bf761e
 
 - kind: git_module
   directory: rocm-systems
@@ -285,10 +285,10 @@ sources:
   ref: esmi_pkg_ver-5.2.1.1-0-gd494a3194ceb4cc4dbb2debf9fcbe8773c6d3bef
 
 - kind: git_lfs
-  ref: f2e60b3a57672f9039c501c0bf6e2167bdfd26ddb352e401d432f1b0fddd6233
+  ref: 2b764691bc66f5fc6e9fcb14f7f021809d44344a3438c7b98f45b1282c5a3b36
 
 - kind: dvc
-  ref: 970888b55fea95ae927366e800c0592a7594025ddb15a7a65f09843f90bde488
+  ref: 37ab1dae58e7de8862b36deba4dc253fc1c4b157ce5004ead88e36f0c46d2175
 
 # NOTE: the third-party archives live in their owning elements; those wrappers
 # still need the offline URL rewrite or replacement with real upstream elements.

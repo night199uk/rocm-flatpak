@@ -37,6 +37,7 @@ depends:
 - components/hipTensor.bst
 - components/libhipcxx.bst
 - components/mxDataGenerator.bst
+- components/origami.bst
 - components/rocALUTION.bst
 - components/rocBLAS.bst
 - components/rocFFT.bst

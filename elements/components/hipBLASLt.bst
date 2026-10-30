@@ -30,6 +30,7 @@ build-depends:
 - components/amdsmi.bst
 - components/hip-clr.bst
 - components/hipBLAS-common.bst
+- components/origami.bst
 - components/mxDataGenerator.bst
 - components/rocm-cmake.bst
 - components/rocm_smi_lib.bst
@@ -41,6 +42,7 @@ depends:
 - freedesktop-sdk-extra.bst:components/openblas.bst
 - components/amdsmi.bst
 - components/hip-clr.bst
+- components/origami.bst
 - components/rocm_smi_lib.bst
 - components/rocprofiler-sdk.bst
 - components/rocRoller.bst
