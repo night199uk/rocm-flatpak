@@ -14,5 +14,5 @@ variables:
     -DCMAKE_TOOLCHAIN_FILE=%{build-root}/files/toolchain/amd-llvm.cmake
     -DROCM_LLVM_PREFIX=%{rocm-llvm-prefix}
     -DROCM_ROCM_PREFIX=%{rocm-prefix}
-    -DROCM_GPU_TARGETS=%{rocm-gpu-targets}
+    -DROCM_GPU_TARGETS="%{rocm-gpu-targets}"
     -DCMAKE_TRY_COMPILE_PLATFORM_VARIABLES="ROCM_LLVM_PREFIX;ROCM_ROCM_PREFIX;ROCM_GPU_TARGETS"
