@@ -30,6 +30,7 @@ build-depends:
 - components/amdsmi.bst
 - components/aqlprofile.bst
 - components/hip-clr.bst
+- components/profiler-hub.bst
 - components/rocm-libdrm.bst
 - components/rocprofiler-register.bst
 - components/rocprofiler-sdk.bst
@@ -44,6 +45,7 @@ depends:
 - components/amdsmi.bst
 - components/aqlprofile.bst
 - components/hip-clr.bst
+- components/profiler-hub.bst
 - components/rocm-libdrm.bst
 - components/rocprofiler-register.bst
 - components/rocprofiler-sdk.bst
