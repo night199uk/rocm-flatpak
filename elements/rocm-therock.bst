@@ -7,7 +7,7 @@ sources:
   url: rocm:TheRock
   checkout-submodules: false
   track: "%{rocmtag}"
-  ref: therock-7.14-0-g418cd5f63abb7a604bad5874cd7b2e29334e640f
+  ref: therock-7.14.1-0-gf51dc6c91e0d3214f22853fd5cb3f96dbc7d2c4b
 
 - kind: git_module
   path: base/half
@@ -23,7 +23,7 @@ sources:
   path: compiler/amd-llvm
   url: github:ROCm/llvm-project.git
   full-clone: false
-  ref: therock-7.14-0-g46fcb339fb61119b337f973c7ca9e710a319fdd0
+  ref: f30ae3e6b680ad23dcf522e668c6d4c5c90838d0
 
 - kind: git_module
   path: compiler/hipify
@@ -55,13 +55,13 @@ sources:
   path: rocm-libraries
   url: github:ROCm/rocm-libraries
   full-clone: false
-  ref: therock-7.14-0-gcd9574023093742434e8c992d13b89ab9a6c1cf8
+  ref: cd9574023093742434e8c992d13b89ab9a6c1cf8
 
 - kind: git_module
   path: rocm-systems
   url: github:ROCm/rocm-systems.git
   full-clone: false
-  ref: therock-7.14-0-g2b22ab0195cc1461cd9abf3b969e9dd7c10af350
+  ref: ca887ee80abfb82671fe1d6d8da708a713438e05
 
 - kind: git_module
   directory: rocm-systems
