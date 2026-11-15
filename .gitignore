@@ -9,6 +9,9 @@ runtimes/
 .flatpak-builder/
 app/
 runtime/
+dist/
+runtime-repo/
+sdk-repo/
 
 # Local BuildStream build logs
 bst-build*.log

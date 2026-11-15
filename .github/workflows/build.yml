@@ -52,8 +52,15 @@ jobs:
             sdk-repo dist/rocm-sdk.flatpak \
             org.freedesktop.Platform.amd.ROCm 26.08
 
-          # Keep both runtimes as single .flatpak assets. The SDK is currently
-          # below GitHub's 2 GiB per-file limit, so it must not be split.
+          # GitHub caps release assets at 2 GiB per file, so split larger
+          # bundles into numbered parts that can be concatenated again.
+          for bundle in dist/*.flatpak; do
+            if [ "$(stat -c%s "$bundle")" -gt 2000000000 ]; then
+              split -b 1900M -d --numeric-suffixes=1 --suffix-length=2 \
+                "$bundle" "$bundle.part-"
+              rm "$bundle"
+            fi
+          done
           sha256sum dist/* > dist/SHA256SUMS
 
       - name: Create release
@@ -64,8 +71,11 @@ jobs:
         run: |
           set -euo pipefail
           case "$VERSION" in
-            v*) ;;
-            *) echo "version must start with v" >&2; exit 1 ;;
+            rocm-* | v*) ;;
+            *)
+              echo "version must start with rocm- or v" >&2
+              exit 1
+              ;;
           esac
 
           if gh release view "$VERSION" >/dev/null 2>&1; then
