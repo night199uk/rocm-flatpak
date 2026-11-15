@@ -23,6 +23,8 @@ depends:
 
 variables:
   prefix: "%{rocm-prefix}"
+  rocm-gpu-targets: >-
+    gfx908;gfx90a;gfx942;gfx950;gfx1100;gfx1101;gfx1102;gfx1103;gfx1150;gfx1151;gfx1152;gfx1153;gfx1200;gfx1201;gfx1250
   lib: "lib"
   conf-root: "rocm-libraries/projects/rocwmma"
   cmake-local: >-
