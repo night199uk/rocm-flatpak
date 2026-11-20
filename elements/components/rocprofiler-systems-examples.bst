@@ -26,6 +26,6 @@ variables:
   conf-root: "rocm-systems/projects/rocprofiler-systems/examples"
   cmake-local: >-
     -DCMAKE_PREFIX_PATH="%{rocm-runtime-prefix};%{rocm-prefix};%{rocm-llvm-prefix};%{rocm-prefix}/lib/rocm_sysdeps;%{rocm-gl-prefix};/usr"
-    -DROCPROFSYS_GFX_TARGETS=%{rocm-gpu-targets}
+    -DROCPROFSYS_GFX_TARGETS="%{rocm-gpu-targets}"
     -DROCPROFSYS_DISABLE_EXAMPLES="lulesh;openmp-target;causal"
     -DROCPROFSYS_USE_MPI=OFF
