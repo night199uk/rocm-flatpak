@@ -64,8 +64,11 @@ jobs:
         run: |
           set -euo pipefail
           case "$VERSION" in
-            v*) ;;
-            *) echo "version must start with v" >&2; exit 1 ;;
+            rocm-* | v*) ;;
+            *)
+              echo "version must start with rocm- or v" >&2
+              exit 1
+              ;;
           esac
 
           if gh release view "$VERSION" >/dev/null 2>&1; then
