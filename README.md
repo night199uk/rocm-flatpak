@@ -45,12 +45,23 @@ echo FLATPAK_GL_DRIVERS=ROCm:default | tee ~/.config/environment.d/60-flatpak_gl
 After a logout and login, or reboot you should see FLATPAK_GL_DRIVERS
 set in the environment.
 
-You also need to set OCL_ICD_VENDORS for the Flatpak application that
-wants to use due to a bug (this should be fixed soon). The critical part
-is the trailing slash on the end of vendors/; so please don't remove it.
+The latest 7.14.1 rebuild includes a patched OpenCL ICD loader and no
+longer requires `OCL_ICD_VENDORS`. If you upgraded from an older 7.14.1
+release, remove any existing override:
 
 ```
-❯ flatpak override --user --env=OCL_ICD_VENDORS=/usr/lib/x86_64-linux-gnu/GL/OpenCL/vendors/ <component ID>
+❯ flatpak override --user --unset-env=OCL_ICD_VENDORS <app-id>
+```
+
+For a system-wide override, use `sudo flatpak override --system
+--unset-env=OCL_ICD_VENDORS <app-id>`.
+
+Older 7.14.1 releases still need the override because their bundled loader
+only looks in `/etc/OpenCL/vendors/`. If you are using one of those and
+`clinfo` reports zero platforms, set it with the trailing slash intact:
+
+```
+❯ flatpak override --user --env=OCL_ICD_VENDORS=/usr/lib/x86_64-linux-gnu/GL/OpenCL/vendors/ <app-id>
 ```
 
 ClInfo:

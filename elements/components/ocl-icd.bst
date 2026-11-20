@@ -20,3 +20,9 @@ variables:
   cmake-local: >-
     -DOPENCL_ICD_LOADER_REQUIRE_WDK=OFF
     -DOPENCL_ICD_LOADER_HEADERS_DIR=%{build-root}/rocm-systems/projects/clr/opencl/khronos/headers/opencl2.2
+
+sources:
+  (>):
+  - kind: patch
+    path: patch/0001-ocl-icd-flatpak-vendor-dir.patch
+    strip-level: 1
