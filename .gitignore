@@ -9,6 +9,7 @@ runtimes/
 .flatpak-builder/
 app/
 runtime/
+dist/
 
 # Local BuildStream build logs
 bst-build*.log

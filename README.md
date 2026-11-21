@@ -6,11 +6,10 @@ rocm-flatpak
 The AMD ROCm stack built from TheRock 7.14 sources for Flatpak 26.08.  
 This builds two artifacts: ROCm Runtime and ROCm SDK.
 
-The ROCm Runtime provides all of the runtime components most users
-need: OpenCL, with AMD mesa and AMD libdrm. As of this version, AMD
-Mesa is not built to cover all uses cases and sits atop of the full
-Mesa in the Freedesktop SDK. Thus, you need to use ROCm & default GL
-extensions together. This may change in future.
+The ROCm Runtime provides the ROCm userspace stack together with a full
+AMD Mesa build for OpenGL, EGL, GLX, GBM, Vulkan, VA-API and OpenCL. The
+runtime extension is published on the Flatpak GL ABI branch `1.4`, so it
+can bind to Freedesktop/KDE runtimes that use a different base branch.
 
 The ROCm SDK provides amd-llvm, hipcc, and all of the tools AMD ship
 for building ROCm accelerated code. This is largely untested as yet
@@ -27,20 +26,26 @@ flatpak install <x>.flatpak
 Usage
 -----
 
-1. Using ROCm for OpenCL:
+1. Using ROCm for OpenCL and graphics:
 Currently the Freedesktop SDK doesn't know how to autoload the AMD ROCm
 extension. Until it does you'll need to update the FLATPAK_GL_DRIVERS
-environment variable to run OpenCL apps. Example:
+environment variable to run ROCm apps. Example:
 
 ```
-❯ export FLATPAK_GL_DRIVERS=ROCm:default
+❯ export FLATPAK_GL_DRIVERS=ROCm
 ```
+
+Use `ROCm` alone, not `ROCm:default`. The runtime now includes its own Mesa
+stack, so loading the Freedesktop `default` driver as well would duplicate
+the GL drivers and can cause conflicts.
+
+If you previously used `ROCm:default`, remove `default` from the list.
 
 If you use systemd, you can use the following to set this permanently
 into your environment:
 ```
 mkdir -p ~/.config/environment.d
-echo FLATPAK_GL_DRIVERS=ROCm:default | tee ~/.config/environment.d/60-flatpak_gl_drivers.conf
+echo FLATPAK_GL_DRIVERS=ROCm | tee ~/.config/environment.d/60-flatpak_gl_drivers.conf
 ```
 After a logout and login, or reboot you should see FLATPAK_GL_DRIVERS
 set in the environment.
