@@ -44,7 +44,7 @@ jobs:
             --force --directory runtime-repo rocm-runtime-flatpak.bst
           flatpak build-bundle --runtime --arch=x86_64 \
             runtime-repo dist/rocm-runtime.flatpak \
-            org.freedesktop.Platform.GL.ROCm 26.08
+            org.freedesktop.Platform.GL.ROCm 1.4
 
           bst --no-colors --no-interactive artifact checkout \
             --force --directory sdk-repo rocm-sdk-flatpak.bst

@@ -3,14 +3,13 @@
 rocm-flatpak
 ============
 
-The AMD ROCm stack built from TheRock 7.14 sources for Flatpak 26.08.  
+The AMD ROCm stack built from TheRock 10.0 sources for Flatpak 26.08.
 This builds two artifacts: ROCm Runtime and ROCm SDK.
 
-The ROCm Runtime provides all of the runtime components most users
-need: OpenCL, with AMD mesa and AMD libdrm. As of this version, AMD
-Mesa is not built to cover all uses cases and sits atop of the full
-Mesa in the Freedesktop SDK. Thus, you need to use ROCm & default GL
-extensions together. This may change in future.
+The ROCm Runtime provides the ROCm userspace stack together with a full
+AMD Mesa build for OpenGL, EGL, GLX, GBM, Vulkan, VA-API and OpenCL. The
+runtime extension is published on the Flatpak GL ABI branch `1.4`, so it
+can bind to Freedesktop/KDE runtimes that use a different base branch.
 
 The ROCm SDK provides amd-llvm, hipcc, and all of the tools AMD ship
 for building ROCm accelerated code. This is largely untested as yet
@@ -30,20 +29,26 @@ If the ROCm runtime does not appear to load, see
 Usage
 -----
 
-1. Using ROCm for OpenCL:
+1. Using ROCm for OpenCL and graphics:
 Currently the Freedesktop SDK doesn't know how to autoload the AMD ROCm
 extension. Until it does you'll need to update the FLATPAK_GL_DRIVERS
-environment variable to run OpenCL apps. Example:
+environment variable to run ROCm apps. Example:
 
 ```
-❯ export FLATPAK_GL_DRIVERS=ROCm:default
+❯ export FLATPAK_GL_DRIVERS=ROCm
 ```
+
+Use `ROCm` alone, not `ROCm:default`. The runtime includes its own Mesa
+stack, so loading the Freedesktop `default` driver as well would duplicate
+the GL drivers and can cause conflicts.
+
+If you previously used `ROCm:default`, remove `default` from the list.
 
 If you use systemd, you can use the following to set this permanently
 into your environment:
 ```
 mkdir -p ~/.config/environment.d
-echo FLATPAK_GL_DRIVERS=ROCm:default | tee ~/.config/environment.d/60-flatpak_gl_drivers.conf
+echo FLATPAK_GL_DRIVERS=ROCm | tee ~/.config/environment.d/60-flatpak_gl_drivers.conf
 ```
 After a logout and login, or reboot you should see FLATPAK_GL_DRIVERS
 set in the environment.
@@ -89,9 +94,9 @@ installation, or environment does not match. The checks below identify which
 part is missing. Replace `<app-id>` with the application you are testing, for
 example `com.blackmagic.Resolve`.
 
-Start with the runtime branch check in section 2. If the app is not using a
-`26.08` runtime, the ROCm extension cannot bind and the environment checks
-will not help.
+Start with the runtime branch check in section 2. The GL extension is
+published on ABI branch `1.4`; it can bind to Freedesktop/KDE runtimes whose
+GL extension point advertises that version.
 
 ### 1. Check the host Flatpak environment
 
@@ -108,16 +113,15 @@ flatpak --gl-drivers
 
 ```
 ROCm
-default
 ```
 
-Other entries such as `host` may also appear. The order can vary; the
-important part is that `ROCm` is present.
+With the full-Mesa runtime, `default` should not be present. If it is, remove
+it from `FLATPAK_GL_DRIVERS`.
 
 If `ROCm` is missing, Flatpak is not seeing the variable. Test it inline:
 
 ```bash
-FLATPAK_GL_DRIVERS=ROCm:default flatpak --gl-drivers
+FLATPAK_GL_DRIVERS=ROCm flatpak --gl-drivers
 ```
 
 If `ROCm` appears only with the inline form, make it persistent for the
@@ -125,8 +129,8 @@ desktop session:
 
 ```bash
 mkdir -p ~/.config/environment.d
-echo 'FLATPAK_GL_DRIVERS=ROCm:default' > ~/.config/environment.d/60-flatpak_gl_drivers.conf
-systemctl --user set-environment FLATPAK_GL_DRIVERS=ROCm:default
+echo 'FLATPAK_GL_DRIVERS=ROCm' > ~/.config/environment.d/60-flatpak_gl_drivers.conf
+systemctl --user set-environment FLATPAK_GL_DRIVERS=ROCm
 ```
 
 Then log out and back in. A plain `export` only affects apps started from that
@@ -134,44 +138,32 @@ terminal. To confirm the variable is the only problem, try running the app with
 it set inline:
 
 ```bash
-FLATPAK_GL_DRIVERS=ROCm:default flatpak run <app-id>
+FLATPAK_GL_DRIVERS=ROCm flatpak run <app-id>
 ```
 
 Avoid running the app with `sudo`; sudo normally drops the variable.
 
 ### 2. Check the runtime branch
 
-The ROCm runtime extension is built for Flatpak branch `26.08` and declares:
+The ROCm GL runtime extension is published on Flatpak ABI branch `1.4` and
+declares:
 
 ```
 [ExtensionOf]
 ref = runtime/org.freedesktop.Platform/x86_64/26.08
 ```
 
-The application must use that same runtime branch. A KDE runtime such as
-`org.kde.Platform/x86_64/6.11`, or a Freedesktop runtime on `25.08`, cannot
-load this extension even if the ROCm runtime is installed.
+Branch `1.4` is the stable GL-driver ABI version advertised by Freedesktop
+and KDE runtimes, so it is not tied to the app's base branch. A KDE runtime
+such as `org.kde.Platform/x86_64/6.11` or a Freedesktop runtime on `25.08`
+can load it as long as its GL extension point includes `1.4`.
 
 ```bash
 flatpak info --show-runtime <app-id>
-flatpak info -m org.freedesktop.Platform.GL.ROCm//26.08 | sed -n '/\[ExtensionOf\]/,+2p'
+flatpak info -m org.freedesktop.Platform.GL.ROCm//1.4 | sed -n '/\[ExtensionOf\]/,+2p'
 ```
 
-For example, a working app reports:
-
-```
-org.freedesktop.Platform/x86_64/26.08
-```
-
-A KDE-based app commonly reports a different branch:
-
-```
-org.kde.Platform/x86_64/6.11
-```
-
-The last path component must be `26.08`. Installing
-`org.freedesktop.Platform/x86_64/26.08` alongside an app that uses another
-branch does not change the app's branch.
+Only a runtime whose GL extension point predates `1.4` cannot load it.
 
 ### 3. Check the installation and dependencies
 
@@ -190,8 +182,7 @@ The following refs should be present in the same installation:
 ```
 runtime/org.freedesktop.Platform/x86_64/26.08
 runtime/org.freedesktop.Sdk/x86_64/26.08
-runtime/org.freedesktop.Platform.GL.default/x86_64/26.08
-runtime/org.freedesktop.Platform.GL.ROCm/x86_64/26.08
+runtime/org.freedesktop.Platform.GL.ROCm/x86_64/1.4
 ```
 
 Confirm that the runtime exposes the GL extension point:
@@ -206,7 +197,6 @@ Install anything missing:
 ```bash
 flatpak install --system org.freedesktop.Platform/x86_64/26.08
 flatpak install --system org.freedesktop.Sdk/x86_64/26.08
-flatpak install --system org.freedesktop.Platform.GL.default//26.08
 ```
 
 Reinstall the ROCm runtime into the same installation as the app if needed:
@@ -227,7 +217,7 @@ A working mount looks similar to:
 
 ```
 F: --ro-bind
-F: /var/lib/flatpak/runtime/org.freedesktop.Platform.GL.ROCm/x86_64/26.08/<commit>/files
+F: /var/lib/flatpak/runtime/org.freedesktop.Platform.GL.ROCm/x86_64/1.4/<commit>/files
 F: /usr/lib/x86_64-linux-gnu/GL/ROCm
 ```
 
@@ -282,7 +272,8 @@ flatpak override --user --device=all <app-id>
 
 ### 6. Common causes
 
-- The app uses a runtime branch other than `26.08`, especially a KDE runtime.
+- The app runtime's GL extension point does not include `1.4`.
+- `FLATPAK_GL_DRIVERS` still includes `default`, loading a second Mesa stack.
 - `FLATPAK_GL_DRIVERS` is set inside the app or in Flatseal, not in the host
   session that launches `flatpak`.
 - `FLATPAK_GL_DRIVERS` was set with `flatpak override --env`; that affects the
@@ -306,7 +297,7 @@ echo "FLATPAK_GL_DRIVERS=${FLATPAK_GL_DRIVERS:-<unset>}"
 flatpak --gl-drivers
 flatpak list --columns=ref,origin,branch,installation | grep -E 'ROCm|org.freedesktop|org.kde'
 flatpak info --show-runtime <app-id>
-flatpak info -m org.freedesktop.Platform.GL.ROCm//26.08
+flatpak info -m org.freedesktop.Platform.GL.ROCm//1.4
 flatpak run -vv --devel --command=/bin/bash <app-id> 2>&1 | grep -E 'GL/ROCm|ro-bind|extensions'
 ```
 
