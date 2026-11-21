@@ -9,4 +9,4 @@ build-depends:
     flatpak-image: True
 
 config:
-  branch: "%{branch}"
+  branch: "%{rocm-gl-branch}"

@@ -1,0 +1,14 @@
+diff --git a/rocm-systems/projects/clr/opencl/khronos/icd/loader/icd_platform.h b/rocm-systems/projects/clr/opencl/khronos/icd/loader/icd_platform.h
+--- a/rocm-systems/projects/clr/opencl/khronos/icd/loader/icd_platform.h
++++ b/rocm-systems/projects/clr/opencl/khronos/icd/loader/icd_platform.h
+@@ -24,6 +24,10 @@
+ #define DIRECTORY_SYMBOL '/'
+ #ifdef __ANDROID__
+ #define ICD_VENDOR_PATH "/system/vendor/Khronos/OpenCL/vendors/";
++#elif defined(__x86_64__)
++#define ICD_VENDOR_PATH "/usr/lib/x86_64-linux-gnu/GL/OpenCL/vendors/";
++#elif defined(__aarch64__)
++#define ICD_VENDOR_PATH "/usr/lib/aarch64-linux-gnu/GL/OpenCL/vendors/";
+ #else
+ #define ICD_VENDOR_PATH "/etc/OpenCL/vendors/";
+ #endif  // ANDROID

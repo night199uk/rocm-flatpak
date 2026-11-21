@@ -6,21 +6,19 @@ build-depends:
 - freedesktop-sdk.bst:components/bison.bst
 - freedesktop-sdk.bst:components/flex.bst
 - freedesktop-sdk.bst:components/glslang.bst
-- freedesktop-sdk.bst:components/llvm.bst
 - freedesktop-sdk.bst:components/python3.bst
 - freedesktop-sdk.bst:components/python3-mako.bst
 - freedesktop-sdk.bst:components/python3-packaging.bst
 - freedesktop-sdk.bst:components/python3-ply.bst
 - freedesktop-sdk.bst:components/python3-pycparser.bst
 - freedesktop-sdk.bst:components/python3-pyyaml.bst
-- freedesktop-sdk.bst:components/rust.bst
-- freedesktop-sdk.bst:components/rust-bindgen.bst
-- freedesktop-sdk.bst:components/rust-cbindgen.bst
 - freedesktop-sdk.bst:components/spirv-llvm-translator.bst
 - freedesktop-sdk.bst:components/spirv-tools.bst
 - freedesktop-sdk.bst:components/vulkan-headers.bst
 - freedesktop-sdk.bst:components/wayland-protocols.bst
 - freedesktop-sdk.bst:public-stacks/buildsystem-meson.bst
+- components/amd-llvm.bst
+- components/rocm-libdrm.bst
 
 depends:
 - freedesktop-sdk.bst:components/libglvnd.bst
@@ -28,7 +26,6 @@ depends:
 - freedesktop-sdk.bst:components/libunwind.bst
 - freedesktop-sdk.bst:components/libva.bst
 - freedesktop-sdk.bst:components/libvdpau.bst
-- freedesktop-sdk.bst:components/opencl.bst
 - freedesktop-sdk.bst:components/vulkan-icd-loader.bst
 - freedesktop-sdk.bst:components/wayland.bst
 - freedesktop-sdk.bst:components/xorg-lib-x11.bst
@@ -37,13 +34,15 @@ depends:
 - freedesktop-sdk.bst:components/xorg-lib-xshmfence.bst
 - freedesktop-sdk.bst:components/xorg-lib-xxf86vm.bst
 - freedesktop-sdk.bst:components/zstd.bst
-- freedesktop-sdk.bst:extensions/mesa/libclc.bst
-- freedesktop-sdk.bst:extensions/mesa/llvm.bst
 - freedesktop-sdk.bst:public-stacks/runtime-minimal.bst
+- components/amd-llvm.bst
 - components/rocm-libdrm.bst
 
 environment:
-  PKG_CONFIG_PATH: "%{libdir}/pkgconfig:%{datadir}/pkgconfig"
+  LLVM_CONFIG: "%{rocm-sdk-llvm-prefix}/bin/llvm-config"
+  PATH: "%{rocm-sdk-llvm-prefix}/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+  LD_LIBRARY_PATH: "%{rocm-sdk-llvm-prefix}/lib:%{rocm-gl-prefix}/lib"
+  PKG_CONFIG_PATH: "%{libdir}/pkgconfig:%{datadir}/pkgconfig:%{rocm-sdk-llvm-prefix}/lib/pkgconfig:%{rocm-gl-prefix}/lib/pkgconfig"
   CXXFLAGS: "%{target_flags} -std=gnu++17"
 
 variables:
@@ -56,37 +55,43 @@ variables:
   meson-lto-flags: ''
   meson-local: >-
     -Db_ndebug=true
-    -Degl=disabled
+    -Dcpp_rtti=false
+    -Degl=enabled
     -Dgallium-drivers=radeonsi
     -Dgallium-rusticl=false
     -Dgallium-va=enabled
-    -Dgbm=disabled
-    -Dgbm-backends-path="/usr/lib/%{gcc_triplet}/GL/lib/gbm"
+    -Dgbm=enabled
+    -Dgbm-backends-path="%{prefix}/lib/gbm"
     -Dgles1=disabled
-    -Dgles2=disabled
-    -Dglvnd=disabled
+    -Dgles2=enabled
+    -Dglvnd=enabled
     -Dglx=auto
-    -Dllvm=disabled
-    -Dopengl=false
+    -Dllvm=enabled
+    -Dopengl=true
     -Dvideo-codecs=h264dec,h265dec,av1dec,vp9dec,jpegdec
-    -Dlibva:with_glx=no
-    -Dlibva:with_wayland=no
-    -Dlibva:with_x11=no
     -Dvalgrind=disabled
-    -Dvulkan-drivers=
+    -Dvulkan-drivers=amd
     -Dvulkan-icd-dir="%{libdir}/vulkan/icd.d"
-    -Dplatforms=
-    -Dzlib=disabled
-    -Dzstd=disabled
-    -Dshader-cache=disabled
-    -Dexpat=disabled
+    -Dplatforms=x11,wayland
+    -Dzlib=auto
+    -Dzstd=enabled
+    -Dshader-cache=enabled
+    -Dexpat=auto
+    -Dlibunwind=enabled
+    -Dgallium-mediafoundation=disabled
+    -Dlmsensors=disabled
+    -Dmicrosoft-clc=disabled
+    -Dandroid-libbacktrace=disabled
+    -Dxlib-lease=enabled
 
 config:
   install-commands:
     (>):
     - |
       mkdir -p "%{install-root}%{libdir}"
-      # mv "%{install-root}%{sysconfdir}/OpenCL" "%{install-root}%{libdir}/"
+      if [ -d "%{install-root}%{sysconfdir}/OpenCL" ]; then
+        mv "%{install-root}%{sysconfdir}/OpenCL" "%{install-root}%{libdir}/"
+      fi
       ln -s libEGL_mesa.so.0 %{install-root}%{libdir}/libEGL_indirect.so.0
       ln -s libGLX_mesa.so.0 %{install-root}%{libdir}/libGLX_indirect.so.0
       rm -f "%{install-root}%{libdir}"/libGLESv2*
@@ -103,11 +108,21 @@ config:
     - |
       ln -sr '%{install-root}%{datadir}/glvnd' '%{install-root}%{prefix}/glvnd'
       mkdir -p '%{install-root}%{prefix}/vulkan'
-      ln -sr '%{install-root}%{libdir}/vulkan/icd.d' '%{install-root}%{prefix}/vulkan/icd.d'
-      ln -sr '%{install-root}%{datadir}/vulkan/explicit_layer.d' '%{install-root}%{prefix}/vulkan/explicit_layer.d'
-      ln -sr '%{install-root}%{datadir}/vulkan/implicit_layer.d' '%{install-root}%{prefix}/vulkan/implicit_layer.d'
-      ln -sr '%{install-root}%{libdir}/OpenCL' '%{install-root}%{prefix}/OpenCL'
-      ln -sr '%{install-root}%{libdir}/vdpau' '%{install-root}%{prefix}/vdpau'
+      if [ -d '%{install-root}%{libdir}/vulkan/icd.d' ]; then
+        ln -sr '%{install-root}%{libdir}/vulkan/icd.d' '%{install-root}%{prefix}/vulkan/icd.d'
+      fi
+      if [ -d '%{install-root}%{datadir}/vulkan/explicit_layer.d' ]; then
+        ln -sr '%{install-root}%{datadir}/vulkan/explicit_layer.d' '%{install-root}%{prefix}/vulkan/explicit_layer.d'
+      fi
+      if [ -d '%{install-root}%{datadir}/vulkan/implicit_layer.d' ]; then
+        ln -sr '%{install-root}%{datadir}/vulkan/implicit_layer.d' '%{install-root}%{prefix}/vulkan/implicit_layer.d'
+      fi
+      if [ -d '%{install-root}%{libdir}/OpenCL' ]; then
+        ln -sr '%{install-root}%{libdir}/OpenCL' '%{install-root}%{prefix}/OpenCL'
+      fi
+      if [ -d '%{install-root}%{libdir}/vdpau' ]; then
+        ln -sr '%{install-root}%{libdir}/vdpau' '%{install-root}%{prefix}/vdpau'
+      fi
 
     - |
       DIR="%{install-root}%{project_licensedir}/mesa"
@@ -118,7 +133,6 @@ public:
   bst:
     split-rules:
       devel:
-        (>):
         - '%{libdir}/libgbm.so'
         - '%{libdir}/libglapi.so'
         - '%{libdir}/libwayland-egl.so'
@@ -209,3 +223,6 @@ sources:
   directory: subprojects/packagecache/rustc-hash-2.1.1
   url: crates:crates/rustc-hash/rustc-hash-2.1.1.crate
   ref: 357703d41365b4b27c590e3ed91eabb1b663f07c4c084095e60cbed4362dff0d
+- kind: patch
+  path: patch/0001-mesa-llvm-23-debug-api.patch
+  strip-level: 1

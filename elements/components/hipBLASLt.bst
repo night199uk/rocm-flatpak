@@ -47,6 +47,9 @@ depends:
 - components/roctracer.bst
 
 environment:
+  # Keep TensileLite joblib parallelism within the razer memory budget.
+  LOKY_MAX_CPU_COUNT: "16"
+  OMP_NUM_THREADS: "16"
   # TensileLite imports rocisa._rocisa, which links libclang-cpp from the
   # amd-llvm tree. Build-time imports do not inherit the install RPATH.
   LD_LIBRARY_PATH: "%{rocm-llvm-prefix}/lib:%{rocm-prefix}/lib:%{rocm-gl-prefix}/lib"
@@ -58,6 +61,9 @@ environment:
 
 variables:
   prefix: "%{rocm-prefix}"
+  # TensileLite supports a subset of the global TheRock GPU list.
+  rocm-gpu-targets: >-
+    gfx908;gfx90a;gfx942;gfx950;gfx1100;gfx1101;gfx1102;gfx1103;gfx1150;gfx1151;gfx1152;gfx1153;gfx1200;gfx1201;gfx1250
   lib: "lib"
   conf-root: "rocm-libraries/projects/hipblaslt"
   cmake-local: >-
@@ -75,6 +81,7 @@ variables:
     -DHIPBLASLT_ENABLE_ROCROLLER=ON
     -DHIPBLASLT_ENABLE_FETCH=OFF
     -DHIPBLASLT_ENABLE_THEROCK=ON
+    -DTENSILELITE_BUILD_PARALLEL_LEVEL=4
     -DFETCHCONTENT_SOURCE_DIR_NANOBIND=%{build-root}/nanobind-src
     -DNB_USE_SUBMODULE_DEPS=OFF
     -DNB_TEST=OFF

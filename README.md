@@ -6,11 +6,10 @@ rocm-flatpak
 The AMD ROCm stack built from TheRock 7.14 sources for Flatpak 26.08.  
 This builds two artifacts: ROCm Runtime and ROCm SDK.
 
-The ROCm Runtime provides all of the runtime components most users
-need: OpenCL, with AMD mesa and AMD libdrm. As of this version, AMD
-Mesa is not built to cover all uses cases and sits atop of the full
-Mesa in the Freedesktop SDK. Thus, you need to use ROCm & default GL
-extensions together. This may change in future.
+The ROCm Runtime provides the ROCm userspace stack together with a full
+AMD Mesa build for OpenGL, EGL, GLX, GBM, Vulkan, VA-API and OpenCL. The
+runtime extension is published on the Flatpak GL ABI branch `1.4`, so it
+can bind to Freedesktop/KDE runtimes that use a different base branch.
 
 The ROCm SDK provides amd-llvm, hipcc, and all of the tools AMD ship
 for building ROCm accelerated code. This is largely untested as yet
@@ -27,30 +26,47 @@ flatpak install <x>.flatpak
 Usage
 -----
 
-1. Using ROCm for OpenCL:
+1. Using ROCm for OpenCL and graphics:
 Currently the Freedesktop SDK doesn't know how to autoload the AMD ROCm
 extension. Until it does you'll need to update the FLATPAK_GL_DRIVERS
-environment variable to run OpenCL apps. Example:
+environment variable to run ROCm apps. Example:
 
 ```
-❯ export FLATPAK_GL_DRIVERS=ROCm:default
+❯ export FLATPAK_GL_DRIVERS=ROCm
 ```
+
+Use `ROCm` alone, not `ROCm:default`. The runtime now includes its own Mesa
+stack, so loading the Freedesktop `default` driver as well would duplicate
+the GL drivers and can cause conflicts.
+
+If you previously used `ROCm:default`, remove `default` from the list.
 
 If you use systemd, you can use the following to set this permanently
 into your environment:
 ```
 mkdir -p ~/.config/environment.d
-echo FLATPAK_GL_DRIVERS=ROCm:default | tee ~/.config/environment.d/60-flatpak_gl_drivers.conf
+echo FLATPAK_GL_DRIVERS=ROCm | tee ~/.config/environment.d/60-flatpak_gl_drivers.conf
 ```
 After a logout and login, or reboot you should see FLATPAK_GL_DRIVERS
 set in the environment.
 
-You also need to set OCL_ICD_VENDORS for the Flatpak application that
-wants to use due to a bug (this should be fixed soon). The critical part
-is the trailing slash on the end of vendors/; so please don't remove it.
+The latest 7.14.1 rebuild includes a patched OpenCL ICD loader and no
+longer requires `OCL_ICD_VENDORS`. If you upgraded from an older 7.14.1
+release, remove any existing override:
 
 ```
-❯ flatpak override --user --env=OCL_ICD_VENDORS=/usr/lib/x86_64-linux-gnu/GL/OpenCL/vendors/ <component ID>
+❯ flatpak override --user --unset-env=OCL_ICD_VENDORS <app-id>
+```
+
+For a system-wide override, use `sudo flatpak override --system
+--unset-env=OCL_ICD_VENDORS <app-id>`.
+
+Older 7.14.1 releases still need the override because their bundled loader
+only looks in `/etc/OpenCL/vendors/`. If you are using one of those and
+`clinfo` reports zero platforms, set it with the trailing slash intact:
+
+```
+❯ flatpak override --user --env=OCL_ICD_VENDORS=/usr/lib/x86_64-linux-gnu/GL/OpenCL/vendors/ <app-id>
 ```
 
 ClInfo:
