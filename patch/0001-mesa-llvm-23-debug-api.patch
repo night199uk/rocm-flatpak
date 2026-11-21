@@ -1,0 +1,31 @@
+--- a/src/gallium/auxiliary/gallivm/lp_bld_nir_soa.c
++++ b/src/gallium/auxiliary/gallivm/lp_bld_nir_soa.c
+@@ -2989,7 +2989,7 @@
+       LLVMMetadataRef di_type = lp_bld_debug_info_type(gallivm, type);
+       LLVMMetadataRef di_var = LLVMDIBuilderCreateAutoVariable(
+          gallivm->di_builder, gallivm->di_function, name, strlen(name),
+-         gallivm->file, debug_info->line, di_type, true, LLVMDIFlagZero, 0);
++         gallivm->file, debug_info->line, di_type, true, LLVMDIFlagZero, 0, 0);
+ 
+       LLVMMetadataRef di_expr = LLVMDIBuilderCreateExpression(gallivm->di_builder, NULL, 0);
+ 
+@@ -6084,7 +6084,7 @@
+       LLVMMetadataRef di_type = lp_bld_debug_info_type(gallivm, LLVMTypeOf(exec_mask));
+       LLVMMetadataRef di_var = LLVMDIBuilderCreateAutoVariable(
+          gallivm->di_builder, gallivm->di_function, "exec_mask", strlen("exec_mask"),
+-         gallivm->file, 0, di_type, true, LLVMDIFlagZero, 0);
++         gallivm->file, 0, di_type, true, LLVMDIFlagZero, 0, 0);
+ 
+       LLVMMetadataRef di_expr = LLVMDIBuilderCreateExpression(gallivm->di_builder, NULL, 0);
+ 
+--- a/src/gallium/auxiliary/gallivm/lp_bld_debug.cpp
++++ b/src/gallium/auxiliary/gallivm/lp_bld_debug.cpp
+@@ -350,7 +350,7 @@
+ 
+    if (kind == LLVMPointerTypeKind) {
+       return LLVMDIBuilderCreatePointerType(
+-         gallivm->di_builder, NULL, sizeof(void *) * 8, 0, 0, "", 0);
++         gallivm->di_builder, NULL, sizeof(void *) * 8, 0, 0, 0, "", 0);
+    }
+ 
+    if (kind == LLVMVectorTypeKind) {
